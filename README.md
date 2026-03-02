@@ -22,12 +22,18 @@ O dataset permite analisar o ciclo completo de um pedido, incluindo:
 
 ---
 
-## 🚀 O Diferencial deste Projeto
-Diferente de uma análise estática, este pipeline simula uma extração programática. Em vez de carregar um CSV manualmente, o Airflow gerencia tarefas que:
-- Buscam os dados via API/Script de extração.
-- Carregam os dados na camada Bronze (Raw).
-- Utilizam o dbt para limpar e transformar os dados na camada Silver (Tratada).
-- Consolidam indicadores de performance (KPIs) na camada Gold (Modelada para Negócio).
+## 🏗️ Arquitetura do Pipeline
+
+IMG
+
+---
+
+## 🛠️ Tecnologias Utilizadas
+- Orquestração: Apache Airflow
+- Ingestão: Python (Simulação de carga incremental/Batch).
+- Armazenamento (DW): PostgreSQL
+- Transformação: dbt (Data Build Tool) para modelagem SQL.
+- Qualidade de Dados: dbt tests para garantir integridade.
 
 ---
 
@@ -40,12 +46,128 @@ O projeto processa informações de:
 
 ---
 
-## 🛠️ Tecnologias Utilizadas
-- Orquestração: Apache Airflow
-- Ingestão: Python (Simulação de carga incremental/Batch).
-- Armazenamento (DW): PostgreSQL
-- Transformação: dbt (Data Build Tool) para modelagem SQL.
-- Qualidade de Dados: dbt tests para garantir integridade.
+## 🎯 O Diferencial deste Projeto
+Diferente de uma análise estática, este pipeline simula uma extração programática. Em vez de carregar um CSV manualmente, o Airflow gerencia tarefas que:
+- Buscam os dados via API/Script de extração.
+- Carregam os dados na camada Bronze (Raw).
+- Utilizam o dbt para limpar e transformar os dados na camada Silver (Tratada).
+- Consolidam indicadores de performance (KPIs) na camada Gold (Modelada para Negócio).
+
+---
+
+## 🚀 Etapas do Projeto
+### 1️⃣ Extração (Extract)
+Os dados foram baixados diretamente do Kaggle em formato CSV e armazenados localmente.
+
+Arquivos utilizados:
+- raw_orders.csv
+- raw_order_items.csv
+- raw_order_payments.csv
+- raw_products.csv
+- raw_sellers.csv
+- raw_customers.csv
+- raw_geolocation.csv
+
+---
+
+### 2️⃣ Carga (Load)
+Os arquivos CSV foram carregados no PostgreSQL como tabelas raw, preservando o esquema original dos dados.
+
+Boas práticas aplicadas:
+- Tipagem adequada de colunas
+- Nenhuma regra de negócio aplicada nesta etapa
+- Estrutura preparada para consumo pelo dbt
+
+Resultado:
+```text
+- raw.raw_orders
+- raw.raw_order_items
+- raw.raw_order_payments
+- raw.raw_products
+- raw.raw_sellers
+- raw.raw_customers
+- raw.raw_geolocation
+- raw.raw_reviwes
+```
+
+---
+
+### 3️⃣ Transformação (Transform – dbt)
+As transformações foram realizadas utilizando dbt, organizadas em três camadas principais:
+- Camada Bronze
+- Camada Silver
+- Camada Gold
+
+--- 
+
+## Camada Bronze 🥉
+**Objetivo:**
+- Limpeza
+- Padronização
+- Renomeação de colunas
+- Aplicação de testes básicos
+
+**Características:**
+- 1 modelo por tabela raw
+- Nenhuma agregação
+- Granularidade idêntica à fonte
+
+**Exemplos:**
+- stg_orders
+- stg_order_items
+- stg_order_payments
+- stg_products
+- stg_sellers
+
+**Testes aplicados:**
+- not_null
+- unique
+- relationships
+
+---
+
+## Camada Silver 🥈
+**Objetivo:**
+- Aplicar regras de negócio
+- Realizar joins entre entidades
+- Criar métricas base reutilizáveis
+
+**Características:**
+- Agregações controladas
+- Métricas consolidadas
+- Modelos reutilizáveis pelos marts
+
+**Principais modelos:**
+- Vendas por ano
+- Vendas por ano-mês
+- Vendas por categoria
+- Vendas por cidade / estado
+- Forma de pagamento
+- Vendas acumuladas
+
+Essa camada atua como **fundação analítica** do projeto.
+
+---
+
+## Camada Gold 🥇
+**Objetivo:**
+- Entregar dados prontos para análise
+- Responder perguntas de negócio
+- Servir BI, dashboards e stakeholders
+
+**Características:**
+- Modelos finais
+- Linguagem de negócio
+- Granularidade explícita
+
+**Principais marts criados:**
+- marts_forma_pgto
+- marts_top10_categorias
+- marts_top10_cidades
+- marts_top10_estados
+- marts_venda_ano
+- marts_venda_ano_mes
+- marts_venda_acumulada
 
 ---
 
