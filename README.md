@@ -113,11 +113,11 @@ As transformações foram realizadas utilizando dbt, organizadas em três camada
 - Granularidade idêntica à fonte
 
 **Exemplos:**
-- stg_orders
-- stg_order_items
-- stg_order_payments
-- stg_products
-- stg_sellers
+- raw_orders
+- raw_order_items
+- raw_order_payments
+- raw_products
+- raw_sellers
 
 **Testes aplicados:**
 - not_null

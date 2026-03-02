@@ -49,6 +49,3 @@ def ingest_kaggle_data():
         
     except Exception as e:
         logging.error(f"Erro durante a ingestão: {e}")
-
-if __name__ == "__main__":
-    ingest_kaggle_data()
