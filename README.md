@@ -49,9 +49,9 @@ O projeto processa informações de:
 ## 🎯 O Diferencial deste Projeto
 Diferente de uma análise estática, este pipeline simula uma extração programática. Em vez de carregar um CSV manualmente, o Airflow gerencia tarefas que:
 - Buscam os dados via API/Script de extração.
-- Carregam os dados na camada Bronze (Raw).
-- Utilizam o dbt para limpar e transformar os dados na camada Silver (Tratada).
-- Consolidam indicadores de performance (KPIs) na camada Gold (Modelada para Negócio).
+- Extrai e Carregam os dados na camada Raw (Dados Brutos).
+- Utilizam o dbt para limpar e transformar os dados na camada Staging (Tratada).
+- Consolidam indicadores de performance (KPIs) na camada Marts (Modelada para Negócio).
 
 ---
 
@@ -93,19 +93,23 @@ Resultado:
 ---
 
 ### 3️⃣ Transformação (Transform – dbt)
-As transformações foram realizadas utilizando dbt, organizadas em três camadas principais:
-- Camada Bronze
-- Camada Silver
-- Camada Gold
+As transformações foram realizadas utilizando dbt.
 
---- 
+---
 
-## Camada Bronze 🥉
+## 📐 Arquitetura organizada em três camadas principais:
+- Camda Raw (dados brutos sem nenhuma alteração)
+- Camada Staging (limpeza e padronização)
+- Camada Marts (modelagem dimensional)
+
+---
+
+### Camada Raw 🟤
 **Objetivo:**
-- Limpeza
-- Padronização
-- Renomeação de colunas
-- Aplicação de testes básicos
+- Dados crus
+- Sem transformação de negócio
+- Sem limpeza pesada
+- Mesmo formato do arquivo original
 
 **Características:**
 - 1 modelo por tabela raw
@@ -126,11 +130,15 @@ As transformações foram realizadas utilizando dbt, organizadas em três camada
 
 ---
 
-## Camada Silver 🥈
+## Camada Staging 🟡
 **Objetivo:**
+- Casting de tipos
+- Rename de colunas
+- Padronização de nomes
+- Remoção de duplicatas
+- Tratamento básico de nulos
 - Aplicar regras de negócio
 - Realizar joins entre entidades
-- Criar métricas base reutilizáveis
 
 **Características:**
 - Agregações controladas
@@ -145,15 +153,15 @@ As transformações foram realizadas utilizando dbt, organizadas em três camada
 - Forma de pagamento
 - Vendas acumuladas
 
-Essa camada atua como **fundação analítica** do projeto.
+Essa camada ainda não é modelo dimensional. Ela é dados limpos e organizados.
 
 ---
 
-## Camada Gold 🥇
+## Camada Marts 🟢
 **Objetivo:**
 - Entregar dados prontos para análise
 - Responder perguntas de negócio
-- Servir BI, dashboards e stakeholders
+- Servir BI e dashboards
 
 **Características:**
 - Modelos finais
@@ -186,8 +194,8 @@ brazilian-ecommerce-pipeline-dbt/
 │   └── utils/                 
 │       └── db_helpers.py      # Funções de conexão, logs, etc.
 ├── data/                      # Landing Zone (Ignorada no .gitignore)
-│   ├── raw/                   # CSVs
-│   └── bronze/                # Parquets
+│   ├── landing/               # Datasets baixandos do Kaggle
+│   └── raw/                   # Parquets
 ├── .env                       # Configuração de Ambientes
 ├── .gitignore
 ├── README.md
