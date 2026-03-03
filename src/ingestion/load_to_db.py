@@ -44,6 +44,3 @@ def load_bronze_to_postgres():
 
     except Exception as e:
         logging.error(f"Erro fatal durante a carga: {e}")
-
-if __name__ == "__main__":
-    load_bronze_to_postgres()
