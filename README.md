@@ -239,22 +239,46 @@ brazilian-ecommerce-pipeline-dbt/
 ## 🚀 Instalação e Configuração
 ### 1️⃣ Clone o repositório:
 ```bash
+# 1. Clone o repositório:
+git clone https://github.com/juniorsilvacc/brazilian-ecommerce-dbt.git
 ```
 
 ### 2️⃣ Obtenha sua API Kaggle
-```bash
-```
+1. Acesse APIs Nasa: [Kaggle](https://www.kaggle.com/) 
+2. Crie uma conta gratuita
+3. Gere sua API Key 
 
 ### 3️⃣Configure as variáveis no .env
 ```bash
+# Variáveis para o banco de dados do Airflow (Interno)
+DB_HOST=postgres
+DB_USER=airflow
+DB_PASSWORD=airflow
+DB_NAME=brazilian_ecommerce_db
+DB_PORT=5432
+
+# Variáveis do Airflow
+AIRFLOW_UID=501
+_AIRFLOW_WWW_USER_USERNAME=airflow
+_AIRFLOW_WWW_USER_PASSWORD=airflow
+
+# KEY KAGGLE
+KAGGLE_API_TOKEN=
 ```
 
-### 4️⃣ Inicialize o Ambiente Airflow
+### 4️⃣ Execução Automática (Via Ambiente Airflow)
 ```bash
+# Crie a estrutura de pastas necessária
+mkdir -p ./dags ./logs ./plugins ./config ./data ./src ./notebooks
 ```
 
 ### 5️⃣ Inicie os Containers Docker
 ```bash
+# Construir as imagens
+docker-compose build
+
+# Executar todos os serviços(containers)
+docker-compose up -d
 ```
 
 --- 
@@ -270,23 +294,38 @@ Password: airflow
 ```
 
 ### 2️⃣ Ative a DAG
-1. Na interface do Airflow, localize a DAG astrotruck-etl
+1. Na interface do Airflow, localize a DAG brazilian-ecommerce-dbt
 2. Clique no botão de Acionar/Trigger para ativá-la
-3. A DAG está configurada para executar a cada 1 hora
+3. A DAG está configurada para executar todos os dias às 8:00 AM
 
 --- 
 
-## ▶️ Como Processar os Dados no dbt
-### 1️⃣ Processe e teste os dados com dbt
+## ▶️ Execução Manual / Debug (Via Terminal)
+Caso precise rodar apenas as transformações do dbt ou gerar documentação sem disparar o Airflow, utilize os comandos abaixo de dentro do container do Airflow Worker:
+### 1️⃣ Entrar no ambiente do dbt:
 ```bash
-# Substituí a menção de "run" e "test" isolados por "dbt build", que é a forma moderna e profissional de rodar o pipeline.
-dbt build
+# Entra no container
+docker exec -it airflow-worker bash
+
+# Ir para a pasta do projeto
+cd /opt/airflow/transform
 ```
 
-### 2️⃣ Gere a documentação técnica:
+### 2️⃣ Rodar o Pipeline de Transformação
+O comando build executa os modelos, roda os testes e aplica os snapshots em uma única operação.
 ```bash
-dbt docs generate
-dbt docs serve
+# Rodar o build. Definido no profiles.yml
+dbt build --profile transform --profiles-dir .
+```
+
+### 3️⃣ Gerar e Visualizar Documentação
+O dbt gera um site estático com a linhagem dos dados (Lineage Graph) e dicionário de dados.
+```bash
+# Gera a documentação
+dbt docs generate --profile transform --profiles-dir .
+
+# Visualização (abre um servidor na porta 8081 do container)
+dbt docs serve --profile transform --profiles-dir . --port 8001
 ```
 
 ---
