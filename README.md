@@ -24,7 +24,7 @@ O dataset permite analisar o ciclo completo de um pedido, incluindo:
 
 ## 🏗️ Arquitetura do Pipeline
 
-IMG
+<img width="1609" height="872" alt="Image" src="https://github.com/juniorsilvacc/brazilian-ecommerce-dbt/blob/master/arquitetura.png" />
 
 1. Ingestão: Scripts Python extraem os dados e carregam no PostgreSQL (Landing Zone).
 2. Orquestração: Apache Airflow gerencia a ordem de execução e falhas.
@@ -135,7 +135,7 @@ As transformações foram realizadas utilizando dbt.
 
 ---
 
-## Camada Staging 🟡
+## Camada Staging ⚪
 **Objetivo:**
 - Casting de tipos
 - Rename de colunas
@@ -162,7 +162,7 @@ Essa camada ainda não é modelo dimensional. Ela é dados limpos e organizados.
 
 ---
 
-## Camada Marts 🟢
+## Camada Marts 🟡
 **Objetivo:**
 - Entregar dados prontos para análise
 - Responder perguntas de negócio
@@ -180,6 +180,17 @@ Essa camada ainda não é modelo dimensional. Ela é dados limpos e organizados.
 - dim_customers.sql
 - dim_products.sql
 - dim_sellers.sql
+
+**Ouro para o negócio.
+Aqui aplicamos o Star Schema (Esquema Estrela):**
+- Tabelas Fato (fct_): Registram os eventos quantitativos (Vendas, Pagamentos, Reviews).
+- Tabelas Dimensão (dim_): Contêm os contextos (Produtos, Clientes, Vendedores).
+
+**Principais KPIs Gerados:**
+1. GMV: Faturamento bruto total.
+2. Delivery Lead Time: Tempo médio entre compra e entrega.
+3. NPS Simulado: Score de satisfação convertido em métricas binárias.
+4. Mix de Pagamento: Distribuição entre Cartão, Boleto e Voucher.
 
 ---
 
@@ -199,13 +210,17 @@ Diferente de scripts SQL comuns, este projeto utiliza testes automatizados em ca
 4. Tests: Implementaste testes de unicidade, nulidade e integridade referencial.
 5. Docs: Criaste uma homepage e documentaste cada coluna.
 
+---
+
 ## 📂 Estrutura do Projeto
 ```text
 brazilian-ecommerce-pipeline-dbt/
 ├── airflow/                   # Configurações do Orquestrador
 │   ├── dags/                  # Suas DAGs que chamam o dbt e o Python
 ├── dbt_transform/             # Projeto de Transformação SQL utilizando dbt
-│   ├── models/                # Camadas Raw, Staging, Marts
+│   ├── models/
+│   │   ├── staging/           # Limpeza e padronização (Silver)
+│   │   └── marts/             # Modelagem Dimensional (Gold)
 │   └── dbt_project.yml
 ├── src/                       # CÓDIGO FONTE CUSTOMIZADO
 │   ├── ingestion/             
