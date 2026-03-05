@@ -2,7 +2,7 @@
 
 Este projeto simula um ecossistema completo de Engenharia de Dados, desde a ingestão de dados brutos de um e-commerce até a disponibilização de modelos prontos para negócio (BI), utilizando as melhores práticas de Medallion Architecture.
 
-# 📌 Contexto
+# 📌 Sobre
 
 A base de dados utilizada é o Brazilian E-Commerce Public Dataset by Olist, disponibilizado publicamente no Kaggle:
 - Fonte: Kaggle – Brazilian E-Commerce Public Dataset by Olist
@@ -26,14 +26,19 @@ O dataset permite analisar o ciclo completo de um pedido, incluindo:
 
 IMG
 
+1. Ingestão: Scripts Python extraem os dados e carregam no PostgreSQL (Landing Zone).
+2. Orquestração: Apache Airflow gerencia a ordem de execução e falhas.
+3. Transformação (ELT): O dbt assume o papel central, transformando dados brutos em tabelas dimensionais usando SQL.
+4. Qualidade: Testes automatizados garantem que nenhum dado "sujo" chegue ao dashboard.
+
 ---
 
 ## 🛠️ Tecnologias Utilizadas
-- Orquestração: Apache Airflow
-- Ingestão: Python (Simulação de carga incremental/Batch).
-- Armazenamento (DW): PostgreSQL
-- Transformação: dbt (Data Build Tool) para modelagem SQL.
-- Qualidade de Dados: dbt tests para garantir integridade.
+- **Orquestração:** Apache Airflow
+- **Ingestão:** Python (Simulação de carga incremental/Batch).
+- **Armazenamento (DW):** PostgreSQL
+- **Transformação:** dbt (Data Build Tool) para modelagem SQL.
+- **Qualidade de Dados:** dbt tests para garantir integridade.
 
 ---
 
@@ -59,7 +64,7 @@ Diferente de uma análise estática, este pipeline simula uma extração program
 ### 1️⃣ Extração (Extract)
 Os dados foram baixados diretamente do Kaggle em formato CSV e armazenados localmente.
 
-Arquivos utilizados:
+**Arquivos utilizados:**
 - raw_orders.csv
 - raw_order_items.csv
 - raw_order_payments.csv
@@ -73,12 +78,12 @@ Arquivos utilizados:
 ### 2️⃣ Carga (Load)
 Os arquivos CSV foram carregados no PostgreSQL como tabelas raw, preservando o esquema original dos dados.
 
-Boas práticas aplicadas:
+**Boas práticas aplicadas:**
 - Tipagem adequada de colunas
 - Nenhuma regra de negócio aplicada nesta etapa
 - Estrutura preparada para consumo pelo dbt
 
-Resultado:
+**Resultado:**
 ```text
 - raw.raw_orders
 - raw.raw_order_items
@@ -169,24 +174,38 @@ Essa camada ainda não é modelo dimensional. Ela é dados limpos e organizados.
 - Granularidade explícita
 
 **Principais marts criados:**
-- marts_forma_pgto
-- marts_top10_categorias
-- marts_top10_cidades
-- marts_top10_estados
-- marts_venda_ano
-- marts_venda_ano_mes
-- marts_venda_acumulada
+- fct_orders.sql
+- fct_payments.sql
+- fct_reviews.sql
+- dim_customers.sql
+- dim_products.sql
+- dim_sellers.sql
 
 ---
+
+## 🛡️ Cultura de Qualidade de Dados
+Diferente de scripts SQL comuns, este projeto utiliza testes automatizados em cada etapa do dbt:
+1. Unique: Garante que IDs não se repitam.
+2. Not Null: Impede que métricas essenciais (como preço) fiquem vazias.
+3. Relationships: Valida a integridade referencial (ex: não existe pagamento para um pedido inexistente).
+4. Accepted Values: Garante que status de pedidos e regiões brasileiras estejam dentro do esperado.
+
+--- 
+
+## 🔧 Parte Técnica
+1. Sources: Mapeaste os dados brutos.
+2. Staging (Silver): Limpaste tipos de dados e padronizaste strings.
+3. Marts (Gold): Criaste a lógica de negócio (Traduções, KPIs de tempo de entrega, Consolidação financeira).
+4. Tests: Implementaste testes de unicidade, nulidade e integridade referencial.
+5. Docs: Criaste uma homepage e documentaste cada coluna.
 
 ## 📂 Estrutura do Projeto
 ```text
 brazilian-ecommerce-pipeline-dbt/
 ├── airflow/                   # Configurações do Orquestrador
 │   ├── dags/                  # Suas DAGs que chamam o dbt e o Python
-│   └── docker-compose.yaml    # Infraestrutura
-├── dbt_project/               # Projeto de Transformação SQL
-│   ├── models/                # Camadas Bronze, Silver, Gold
+├── dbt_transform/             # Projeto de Transformação SQL utilizando dbt
+│   ├── models/                # Camadas Raw, Staging, Marts
 │   └── dbt_project.yml
 ├── src/                       # CÓDIGO FONTE CUSTOMIZADO
 │   ├── ingestion/             
@@ -202,4 +221,60 @@ brazilian-ecommerce-pipeline-dbt/
 └── requirements.txt
 ```
 
-...
+## 🚀 Instalação e Configuração
+### 1️⃣ Clone o repositório:
+```bash
+```
+
+### 2️⃣ Obtenha sua API Kaggle
+```bash
+```
+
+### 3️⃣Configure as variáveis no .env
+```bash
+```
+
+### 4️⃣ Inicialize o Ambiente Airflow
+```bash
+```
+
+### 5️⃣ Inicie os Containers Docker
+```bash
+```
+
+--- 
+
+## ▶️ Como Executar o Airflow
+### 1️⃣ Acesse a Interface do Airflow
+Abra seu navegador em: http://localhost:8080
+
+### Credenciais padrão:
+```text
+Username: airflow
+Password: airflow
+```
+
+### 2️⃣ Ative a DAG
+1. Na interface do Airflow, localize a DAG astrotruck-etl
+2. Clique no botão de Acionar/Trigger para ativá-la
+3. A DAG está configurada para executar a cada 1 hora
+
+--- 
+
+## ▶️ Como Processar os Dados no dbt
+### 1️⃣ Processe e teste os dados com dbt
+```bash
+# Substituí a menção de "run" e "test" isolados por "dbt build", que é a forma moderna e profissional de rodar o pipeline.
+dbt build
+```
+
+### 2️⃣ Gere a documentação técnica:
+```bash
+dbt docs generate
+dbt docs serve
+```
+
+---
+
+### 👷 Autor
+[Linkedin](https://www.linkedin.com/in/juniiorsilvadev/) 
