@@ -1,0 +1,24 @@
+dw:
+  outputs:
+    dev:
+      dbname: commodities_python_dbt
+      host: dpg-d652159r0fns73c55hc0-a.oregon-postgres.render.com
+      pass: D39k2kMf0cPp2pucfXCaR1PC3YMpFFW1
+      port: 5432
+      schema: public
+      threads: 1
+      type: postgres
+      user: commodities_python_dbt_user
+  target: dev
+transform:
+  outputs:
+    dev:
+      dbname: brazilian_ecommerce_db
+      host: postgres
+      pass: airflow
+      port: 5432
+      schema: public
+      threads: 4
+      type: postgres
+      user: airflow
+  target: dev

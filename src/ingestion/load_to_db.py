@@ -1,11 +1,10 @@
 import pandas as pd
 import logging
 from pathlib import Path
-from postgres_to_db import get_engine
-
+from src.ingestion.postgres_to_db import get_engine
 
 logging.basicConfig(
-    level=logging.INFO, 
+    level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
