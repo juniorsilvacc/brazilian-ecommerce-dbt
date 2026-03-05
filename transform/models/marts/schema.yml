@@ -1,0 +1,94 @@
+version: 2
+
+models:
+  - name: fct_orders
+    description: "Tabela central de vendas que consolida valores de itens e status de entrega."
+    columns:
+      - name: order_id
+        tests:
+          - unique
+          - not_null
+      - name: total_order_amount
+        description: "Soma do preço dos itens mais o valor do frete."
+      - name: delivery_lead_time_days
+        description: "Calcula o tempo de entrega em dias (Dia da entrega - Dia Comprado)"
+  
+  - name: fct_payments
+    description: "Tabela de factos que detalha cada transação de pagamento por pedido."
+    columns:
+      - name: order_id
+        description: "Chave estrangeira para a tabela de pedidos."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_orders')
+              field: order_id
+      - name: payment_method
+        description: "Método de pagamento traduzido (Cartão, Boleto, etc)."
+        tests:
+          - not_null
+      - name: amount
+        description: "Valor pago nesta transação específica."
+        tests:
+          - not_null
+  
+  - name: fct_reviews
+    description: "Tabela de fatos com as avaliações dos clientes sobre seus pedidos."
+    columns:
+      - name: review_id
+        description: "ID único da avaliação."
+        tests:
+          - unique
+          - not_null
+      - name: order_id
+        description: "FK para a tabela de pedidos."
+        tests:
+          - relationships:
+              to: ref('stg_orders')
+              field: order_id
+      - name: review_score
+        description: "Nota de 1 a 5 dada pelo cliente."
+      - name: is_satisfied
+        description: "Flag binária: 1 para notas >= 4, 0 para notas menores."
+        tests:
+          - accepted_values:
+              values: [0, 1]
+  
+  - name: dim_sellers
+    description: "Dimensão contendo informações geográficas dos vendedores parceiros."
+    columns:
+      - name: seller_id
+        tests:
+          - unique
+          - not_null
+      - name: seller_city
+        description: "Cidade de origem do vendedor."
+      - name: seller_state
+        description: "UF do vendedor."
+  
+  - name: dim_customers
+    description: "Dimensão de clientes com enriquecimento de região brasileira."
+    columns:
+      - name: customer_id
+        tests:
+          - unique
+          - not_null
+      - name: customer_region
+        description: "Região do Brasil baseada no estado (Sudeste, Sul, etc)."
+        tests:
+          - accepted_values:
+              values: ['Sudeste', 'Sul', 'Centro-Oeste', 'Nordeste', 'Norte']
+  
+  - name: dim_products
+    description: "Dimensão de produtos com categorias traduzidas para Inglês e métricas de volume."
+    columns:
+      - name: product_id
+        tests:
+          - unique
+          - not_null
+      - name: category_en
+        description: "Nome da categoria traduzido via tabela de tradução."
+      - name: category_pt
+        description: "Nome da categoria traduzido para pt-br."
+      - name: volume_cm3
+        description: "Volume cúbico calculado (Comprimento * Altura * Largura)."
