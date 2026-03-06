@@ -272,7 +272,14 @@ KAGGLE_API_TOKEN=
 mkdir -p ./dags ./logs ./plugins ./config ./data ./src ./notebooks
 ```
 
-### 5️⃣ Inicie os Containers Docker
+### 5️⃣ Centralizar o profiles.yml
+Para garantir que o Airflow e o dbt encontrem as configurações de conexão sem depender de pastas ocultas do sistema operacional (~/.dbt/), mantenha o arquivo na raiz do projeto dbt.
+```bash
+# Copia o profiles.yml global para a pasta local do projeto
+cp ~/.dbt/profiles.yml ~/brazilian-ecommerce-dbt/transform/profiles.yml
+```
+
+### 6️⃣ Inicie os Containers Docker
 ```bash
 # Construir as imagens
 docker-compose build
