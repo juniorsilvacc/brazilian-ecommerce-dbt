@@ -102,91 +102,66 @@ As transformações foram realizadas utilizando dbt.
 
 ---
 
-## 📐 Arquitetura organizada em três camadas principais:
-- Camda Raw (dados brutos sem nenhuma alteração)
-- Camada Staging (limpeza e padronização)
-- Camada Marts (modelagem dimensional)
+## 🗃️ Camada de Transformações dos Dados
+- Camada Staging (limpeza e padronização):
+  - Responsável por espelhar os dados brutos, aplicando renomeação de colunas, tipagem correta (casting) e tratamentos básicos de nulos. 
+
+- Camada Intermediate (Transformação e Lógica de Negócio):
+  - Onde ocorre o cruzamento de entidades e a aplicação de regras complexas. É a fundação modular que evita a repetição de lógica nos modelos finais.
+
+- Camada Marts (modelagem dimensional):
+  - A camada de entrega final organizada em tabelas de Fato e Dimensão. Projetada para alta performance em ferramentas de BI e clareza para os usuários de negócio.
 
 ---
 
-### Camada Raw 🟤
-**Objetivo:**
-- Dados crus
-- Sem transformação de negócio
-- Sem limpeza pesada
-- Mesmo formato do arquivo original
+## Camada Staging 🟤
+**Objetivo:** Limpeza técnica e padronização. É o primeiro contato com os dados brutos.
 
-**Características:**
-- 1 modelo por tabela raw
-- Nenhuma agregação
-- Granularidade idêntica à fonte
+- Transformações:
+  - Casting: Conversão de strings para `DATE`, `TIMESTAMP` ou `NUMERIC`.
+  - Renaming: Tradução de colunas (ex: de `customer_state` para `state`) para uma linguagem ubíqua.
+  - Sanitização: `TRIM()` em strings e tratamento básico de nulos.
 
-**Exemplos:**
-- raw_orders
-- raw_order_items
-- raw_order_payments
-- raw_products
-- raw_sellers
-
-**Testes aplicados:**
-- not_null
-- unique
-- relationships
+- Características:
+  - Relação 1:1: Um modelo para cada tabela da fonte (`raw`).
+  - Sem Joins: Não realizamos uniões entre tabelas nesta camada.
+  - Granularidade: Idêntica à fonte original.
+  - Materialização: Preferencialmente `view`.
 
 ---
 
-## Camada Staging ⚪
-**Objetivo:**
-- Casting de tipos
-- Rename de colunas
-- Padronização de nomes
-- Remoção de duplicatas
-- Tratamento básico de nulos
-- Aplicar regras de negócio
-- Realizar joins entre entidades
+## Camada Intermediate ⚪
+**Objetivo:** Onde a mágica acontece. Aqui construímos a lógica de negócio que será reaproveitada em múltiplos Marts.
 
-**Características:**
-- Agregações controladas
-- Métricas consolidadas
-- Modelos reutilizáveis pelos marts
+- Transformações:
+  - Joins Complexos: União de entidades (ex: `orders` + `order_items`).
+  - Regras de Negócio: Filtros específicos (ex: remover pedidos cancelados).
+  - Agregações de Base: Cálculos que servem de alicerce (ex: `total_item_price`).
 
-**Principais modelos:**
-- Vendas por ano
-- Vendas por ano-mês
-- Vendas por categoria
-- Vendas por cidade / estado
-- Forma de pagamento
-- Vendas acumuladas
-
-Essa camada ainda não é modelo dimensional. Ela é dados limpos e organizados.
+- Características:
+  - Modelos Efêmeros: Frequentemente não são expostos ao BI (podem ser `ephemeral`).
+  - Modularidade: Evita a repetição de código (DRY - Don't Repeat Yourself).
+  - Modelos Focados: `int_order_items_summarized`, `int_payments_pivoted`.
 
 ---
 
 ## Camada Marts 🟡
-**Objetivo:**
-- Entregar dados prontos para análise
-- Responder perguntas de negócio
-- Servir BI e dashboards
+**bjetivo:** Entrega de valor. Dados prontos para consumo por ferramentas de BI.
 
-**Características:**
-- Modelos finais
-- Linguagem de negócio
-- Granularidade explícita
+- Estrutura (Star Schema):
+  - Dimensões (`dim_`): Entidades do negócio (Quem? O quê? Onde?). Contêm dados descritivos.
+  - Fatos (`fct_`): Eventos quantificáveis (Quanto? Quando?). Contêm métricas e chaves estrangeiras.
 
-**Principais marts criados:**
-- fct_orders.sql
-- fct_payments.sql
-- fct_reviews.sql
-- dim_customers.sql
-- dim_products.sql
-- dim_sellers.sql
+- Características:
+  - Linguagem de Negócio: Nomes de colunas totalmente intuitivos para analistas.
+  - Performance: Geralmente materializados como `table` ou `incremental` para rapidez na leitura.
+  - Granularidade: Nível de granularidade explícita.
+  
+- Star Schema (Esquema Estrela):
+  - Tabelas Fato (fct_): Registram os eventos quantitativos `fct_orders`, `fct_payments`, `fct_reviews`.
+  - Tabelas Dimensão (dim_): Contêm os contextos `dim_customers`, `dim_products`, `dim_sellers`.
 
-**Ouro para o negócio.
-Aqui aplicamos o Star Schema (Esquema Estrela):**
-- Tabelas Fato (fct_): Registram os eventos quantitativos (Vendas, Pagamentos, Reviews).
-- Tabelas Dimensão (dim_): Contêm os contextos (Produtos, Clientes, Vendedores).
-
-**Principais KPIs Gerados:**
+### Principais KPIs Gerados
 1. GMV: Faturamento bruto total.
 2. Delivery Lead Time: Tempo médio entre compra e entrega.
 3. NPS Simulado: Score de satisfação convertido em métricas binárias.
@@ -308,31 +283,34 @@ Password: airflow
 --- 
 
 ## ▶️ Execução Manual / Debug (Via Terminal)
-Caso precise rodar apenas as transformações do dbt ou gerar documentação sem disparar o Airflow, utilize os comandos abaixo de dentro do container do Airflow Worker:
+Caso precise rodar apenas as transformações do dbt ou gerar documentação sem disparar o Airflow, utilize os comandos:
 ### 1️⃣ Entrar no ambiente do dbt:
 ```bash
-# Entra no container
-docker exec -it airflow-worker bash
-
 # Ir para a pasta do projeto
-cd /opt/airflow/transform
+cd /brazilian-ecommerce-dbt/transform
 ```
 
 ### 2️⃣ Rodar o Pipeline de Transformação
 O comando build executa os modelos, roda os testes e aplica os snapshots em uma única operação.
 ```bash
-# Rodar o build. Definido no profiles.yml
-dbt build --profile transform --profiles-dir .
+# Rodar o build, definido no profiles.yml
+dbt build
+
+# Rodar apenas a execução
+dbt run
+
+# Rodar apenas a camada específica
+dbt run --select staging
 ```
 
 ### 3️⃣ Gerar e Visualizar Documentação
 O dbt gera um site estático com a linhagem dos dados (Lineage Graph) e dicionário de dados.
 ```bash
-# Gera a documentação
-dbt docs generate --profile transform --profiles-dir .
+# Gera a documentação. Compila o projeto e gera os arquivos JSON da doc
+dbt docs generate
 
-# Visualização (abre um servidor na porta 8081 do container)
-dbt docs serve --profile transform --profiles-dir . --port 8001
+# Visualização. Inicia o servidor na porta 8001
+dbt docs serve --port 8001
 ```
 
 ---
