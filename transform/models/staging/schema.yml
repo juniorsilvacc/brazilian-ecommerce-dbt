@@ -4,55 +4,64 @@ models:
   - name: stg_customers
     description: "Tabela de clientes limpa e com a coluna de região brasileira adicionada."
     columns:
-      - name: customer_id
+      - name: cliente_id
         description: "ID único do pedido do cliente (Chave Primária)."
         tests:
           - unique
           - not_null
-      - name: state
+      - name: estado
         description: "UF do cliente (ex: SP, RJ)."
 
   - name: stg_orders
     description: "Tabela principal de pedidos com datas convertidas para timestamp."
     columns:
-      - name: order_id
+      - name: pedido_id
+        description: "ID único do pedido."
         tests:
           - unique
           - not_null
-      - name: order_status
+      - name: status_pedido
+        description: "Status atual do pedido (ex: entregue, cancelado)."
         tests:
           - accepted_values:
-              values: ['delivered', 'shipped', 'canceled', 'invoiced', 'processing', 'approved', 'unavailable', 'created']
+              arguments:
+                values: ['delivered', 'shipped', 'canceled', 'invoiced', 'processing', 'approved', 'unavailable', 'created']
 
   - name: stg_order_items
     description: "Detalhes dos produtos vendidos em cada pedido."
     columns:
-      - name: order_id
+      - name: pedido_id
+        description: "Referência ao ID do pedido."
         tests:
           - not_null
           - relationships:
-              to: ref('stg_orders')
-              field: order_id
-      - name: price
+              arguments:
+                to: ref('stg_orders')
+                field: pedido_id
+      - name: preco
         description: "Preço unitário do item."
 
   - name: stg_order_payments
     description: "Informações de pagamento dos pedidos."
     columns:
-      - name: order_id
+      - name: pedido_id
+        description: "Referência ao ID do pedido."
         tests:
           - not_null
           - relationships:
-              to: ref('stg_orders')
-              field: order_id
-      - name: payment_value
+              arguments:
+                to: ref('stg_orders')
+                field: pedido_id
+      - name: valor_pagamento
+        description: "Valor total pago na transação."
         tests:
           - not_null
 
   - name: stg_products
     description: "Catálogo de produtos com dimensões físicas."
     columns:
-      - name: product_id
+      - name: produto_id
+        description: "ID único do produto."
         tests:
           - unique
           - not_null

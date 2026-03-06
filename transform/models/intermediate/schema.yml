@@ -1,0 +1,133 @@
+version: 2
+
+models:
+  - name: int_clientes_localizacao
+    description: "Clientes com dados de localização enriquecidos e validados pela tabela de geolocalização."
+    columns:
+      - name: cliente_id
+        description: "ID cliente."
+        tests:
+          - unique
+          - not_null
+      - name: cliente_unico_id
+        description: "ID único do cliente."
+        tests:
+          - not_null
+      - name: cep
+        description: "CEP do cliente."
+      - name: cidade
+        description: "Nome da cidade (prioriza dado oficial da geo via coalesce)."
+      - name: estado
+        description: "UF do estado."
+
+  - name: int_pagamentos_pivoteados
+    description: "Consolidação de pagamentos por pedido, transformando métodos em colunas (Pivot)."
+    columns:
+      - name: pedido_id
+        description: "ID único do pedido."
+        tests:
+          - unique
+          - not_null
+      - name: valor_cartao_credito
+        description: "Total pago via cartão de crédito no pedido."
+      - name: valor_boleto
+        description: "Total pago via boleto no pedido."
+      - name: valor_voucher
+        description: "Total pago via voucher no pedido."
+      - name: valor_cartao_debito
+        description: "Total pago via cartao de debito no pedido."
+      - name: valor_total_pedido
+        description: "Soma de todos os métodos de pagamento do pedido."
+      - name: total_parcelas
+        description: "Número máximo de parcelas escolhido para o pedido."
+
+  - name: int_pedidos_detalhados
+    description: "Tabela mestre unindo itens, pedidos e produtos. Grão: Item do Pedido."
+    columns:
+      - name: pedido_id
+        description: "ID do pedido. Nota: Não é único nesta tabela, pois um pedido pode ter vários itens."
+        tests:
+          - not_null
+      - name: produto_id
+        description: "ID do produto. Nota: Não é único nesta tabela, pois um produto pode ter vários compradores."
+        tests:
+          - not_null
+      - name: cliente_id
+        description: "ID do cliente. Nota: Não é único nesta tabela, pois um cliente pode ter vários pedidos."
+        tests:
+          - not_null
+      - name: status_pedido
+        description: "Status atual do pedido (ex: entregue, cancelado)."
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['delivered', 'shipped', 'canceled', 'invoiced', 'processing', 'approved', 'unavailable', 'created']
+      - name: pedido_criado_em
+        description: "Data e hora em que o pedido foi registrado no sistema (Timestamp)."
+        tests:
+          - not_null
+      - name: preco
+        description: "Preço unitário do produto (valor de venda)."
+        tests:
+          - not_null
+      - name: valor_frete
+        description: "Custo do frete atribuído a este item do pedido."
+        tests:
+          - not_null
+      - name: vendedor_id
+        description: "ID do vendedor. Nota: Não é único nesta tabela, pois um vendedor pode ter vários clientes."
+        tests:
+          - not_null
+      - name: valor_total_item
+        description: "Soma do preço do produto + valor do frete para este item específico."
+        tests:
+          - not_null
+      - name: categoria_nome
+        description: "Categoria do produto vinculada ao item."
+
+  - name: int_vendedores_localizacao
+    description: "Vendedores com localização enriquecida via tabela de geolocalização."
+    columns:
+      - name: vendedor_id
+        description: "ID único do vendedor."
+        tests:
+          - unique
+          - not_null
+      - name: cep
+        description: "CEP do vendedor."
+      - name: cidade
+        description: "Cidade do vendedor (validada ou original)."
+      - name: estado
+        description: "Estado do vendedor (validada ou original)."
+
+  - name: int_reviews_pedidos
+    description: "Agregação de avaliações por pedido para tratar casos de múltiplas reviews."
+    columns:
+      - name: pedido_id
+        description: "Chave única por pedido nesta tabela."
+        tests:
+          - unique
+          - not_null
+      - name: media_score_review
+        description: "Média das notas de avaliação atribuídas ao pedido (escala de 1 a 5)."
+        tests:
+          - not_null
+      - name: total_reviews
+        description: "Quantidade total de avaliações registradas para um único pedido."
+        tests:
+          - not_null
+
+  - name: int_pagamentos_resumo
+    description: "Agregação simples de pagamentos por pedido para identificar o montante total e a diversidade de métodos usados."
+    columns:
+      - name: pedido_id
+        description: "Chave única por pedido nesta tabela (após o group by)."
+        tests:
+          - unique
+          - not_null
+      - name: valor_total_pago
+        description: "Soma total de todos os pagamentos realizados para este pedido."
+      - name: qtd_metodos_pagamento
+        description: "Contagem de quantas transações de pagamento foram feitas (ex: 2 cartões = 2)."
+      - name: max_parcelas
+        description: "O maior número de parcelas aplicado a qualquer um dos pagamentos do pedido."

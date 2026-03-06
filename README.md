@@ -141,7 +141,14 @@ As transformações foram realizadas utilizando dbt.
 - Características:
   - Modelos Efêmeros: Frequentemente não são expostos ao BI (podem ser `ephemeral`).
   - Modularidade: Evita a repetição de código (DRY - Don't Repeat Yourself).
-  - Modelos Focados: `int_order_items_summarized`, `int_payments_pivoted`.
+
+- Modelos:
+  - `int_clientes_localizacao`
+  - `int_pagamentos_pivoteados`
+  - `int_pagamentos_resumo`
+  - `int_pedidos_detalhados`
+  - `int_reviews_pedidos`
+  - `int_vendedores_desempenho`
 
 ---
 
@@ -194,8 +201,9 @@ brazilian-ecommerce-pipeline-dbt/
 │   ├── dags/                  # Suas DAGs que chamam o dbt e o Python
 ├── dbt_transform/             # Projeto de Transformação SQL utilizando dbt
 │   ├── models/
-│   │   ├── staging/           # Limpeza e padronização (Silver)
-│   │   └── marts/             # Modelagem Dimensional (Gold)
+│   │   ├── intermediate/      # Transformação e lógica de negócio
+│   │   ├── staging/           # Limpeza e padronização
+│   │   └── marts/             # Modelagem dimensional 
 │   └── dbt_project.yml
 ├── src/                       # CÓDIGO FONTE CUSTOMIZADO
 │   ├── ingestion/             

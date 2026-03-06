@@ -14,7 +14,7 @@ transform:
   outputs:
     dev:
       dbname: brazilian_ecommerce_db
-      host: postgres
+      host: localhost
       pass: airflow
       port: 5432
       schema: public
