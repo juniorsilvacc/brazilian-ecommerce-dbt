@@ -4,21 +4,21 @@ with source as (
 
 renamed as (
     select
-        cast(geolocation_zip_code_prefix as varchar) as zip_code,
+        cast(geolocation_zip_code_prefix as varchar) as cep,
 
         cast(geolocation_lat as numeric) as latitude,
         cast(geolocation_lng as numeric) as longitude, 
 
-        upper(trim(geolocation_city)) as city,
-        upper(trim(geolocation_state)) as state
+        upper(trim(geolocation_city)) as cidade,
+        upper(trim(geolocation_state)) as estado
     from source
 ),
 
 deduplicated as (
     select 
-        zip_code,
-        city,
-        state,
+        cep,
+        cidade,
+        estado,
         avg(latitude) as latitude,
         avg(longitude) as longitude
     from renamed
