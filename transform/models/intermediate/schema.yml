@@ -131,3 +131,5 @@ models:
         description: "Contagem de quantas transações de pagamento foram feitas (ex: 2 cartões = 2)."
       - name: max_parcelas
         description: "O maior número de parcelas aplicado a qualquer um dos pagamentos do pedido."
+      - name: metodo_pagamento_predominante
+        description: "O meio de pagamento que foi responsável pela maior fatia financeira daquele pedido (Ex: O pedido foi pago (ou a maior parte dele) via Cartão de Crédito.)"

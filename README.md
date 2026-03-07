@@ -5,10 +5,10 @@ Este projeto simula um ecossistema completo de Engenharia de Dados, desde a inge
 # 📌 Sobre
 
 A base de dados utilizada é o Brazilian E-Commerce Public Dataset by Olist, disponibilizado publicamente no Kaggle:
-- Fonte: Kaggle – Brazilian E-Commerce Public Dataset by Olist
-- Período: 2016 a 2018
-- Volume: ~100 mil pedidos
-- Domínio: Marketplace / E-commerce
+- **Fonte**: Kaggle – Brazilian E-Commerce Public Dataset by Olist
+- **Período**: 2016 a 2018
+- **Volume**: ~100 mil pedidos
+- **Domínio**: Marketplace / E-commerce
 
 O dataset permite analisar o ciclo completo de um pedido, incluindo:
 - Pedidos
@@ -26,10 +26,10 @@ O dataset permite analisar o ciclo completo de um pedido, incluindo:
 
 <img width="1609" height="872" alt="Image" src="https://github.com/juniorsilvacc/brazilian-ecommerce-dbt/blob/master/arquitetura.png" />
 
-1. Ingestão: Scripts Python extraem os dados e carregam no PostgreSQL (Landing Zone).
-2. Orquestração: Apache Airflow gerencia a ordem de execução e falhas.
-3. Transformação (ELT): O dbt assume o papel central, transformando dados brutos em tabelas dimensionais usando SQL.
-4. Qualidade: Testes automatizados garantem que nenhum dado "sujo" chegue ao dashboard.
+1. **Ingestão**: Scripts Python extraem os dados e carregam no PostgreSQL (Landing Zone).
+2. **Orquestração**: Apache Airflow gerencia a ordem de execução e falhas.
+3. **Transformação (ELT)**: O dbt assume o papel central, transformando dados brutos em tabelas dimensionais usando SQL.
+4. **Qualidade**: Testes automatizados garantem que nenhum dado "sujo" chegue ao dashboard.
 
 ---
 
@@ -43,7 +43,7 @@ O dataset permite analisar o ciclo completo de um pedido, incluindo:
 ---
 
 ## 📊 Estrutura dos Dados
-O projeto processa informações de:
+**O projeto processa informações de:**
 - Pedidos e itens de pedidos.
 - Pagamentos e avaliações de clientes.
 - Geolocalização e logística de entrega.
@@ -52,7 +52,7 @@ O projeto processa informações de:
 ---
 
 ## 🎯 O Diferencial deste Projeto
-Diferente de uma análise estática, este pipeline simula uma extração programática. Em vez de carregar um CSV manualmente, o Airflow gerencia tarefas que:
+**Diferente de uma análise estática, este pipeline simula uma extração programática. Em vez de carregar um CSV manualmente, o Airflow gerencia tarefas que:**
 - Buscam os dados via API/Script de extração.
 - Extrai e Carregam os dados na camada Raw (Dados Brutos).
 - Utilizam o dbt para limpar e transformar os dados na camada Staging (Tratada).
@@ -103,46 +103,46 @@ As transformações foram realizadas utilizando dbt.
 ---
 
 ## 🗃️ Camada de Transformações dos Dados
-- Camada Staging (limpeza e padronização):
+- **Camada Staging (limpeza e padronização)**:
   - Responsável por espelhar os dados brutos, aplicando renomeação de colunas, tipagem correta (casting) e tratamentos básicos de nulos. 
 
-- Camada Intermediate (Transformação e Lógica de Negócio):
+- **Camada Intermediate (Transformação e Lógica de Negócio)**:
   - Onde ocorre o cruzamento de entidades e a aplicação de regras complexas. É a fundação modular que evita a repetição de lógica nos modelos finais.
 
-- Camada Marts (modelagem dimensional):
+- **Camada Marts (modelagem dimensional)**:
   - A camada de entrega final organizada em tabelas de Fato e Dimensão. Projetada para alta performance em ferramentas de BI e clareza para os usuários de negócio.
 
 ---
 
 ## Camada Staging 🟤
-**Objetivo:** Limpeza técnica e padronização. É o primeiro contato com os dados brutos.
+**Objetivo**: Limpeza técnica e padronização. É o primeiro contato com os dados brutos.
 
-- Transformações:
-  - Casting: Conversão de strings para `DATE`, `TIMESTAMP` ou `NUMERIC`.
-  - Renaming: Tradução de colunas (ex: de `customer_state` para `state`) para uma linguagem ubíqua.
-  - Sanitização: `TRIM()` em strings e tratamento básico de nulos.
+- **Transformações**:
+  - **Casting**: Conversão de strings para `DATE`, `TIMESTAMP` ou `NUMERIC`.
+  - **Renaming**: Tradução de colunas (ex: de `customer_state` para `state`) para uma linguagem ubíqua.
+  - **Sanitização**: `TRIM()` em strings e tratamento básico de nulos.
 
-- Características:
-  - Relação 1:1: Um modelo para cada tabela da fonte (`raw`).
-  - Sem Joins: Não realizamos uniões entre tabelas nesta camada.
-  - Granularidade: Idêntica à fonte original.
-  - Materialização: Preferencialmente `view`.
+- **Características**:
+  - **Relação 1:1**: Um modelo para cada tabela da fonte (`raw`).
+  - **Sem Joins**: Não realizamos uniões entre tabelas nesta camada.
+  - **Granularidade**: Idêntica à fonte original.
+  - **Materialização**: Preferencialmente `view`.
 
 ---
 
 ## Camada Intermediate ⚪
 **Objetivo:** Onde a mágica acontece. Aqui construímos a lógica de negócio que será reaproveitada em múltiplos Marts.
 
-- Transformações:
-  - Joins Complexos: União de entidades (ex: `orders` + `order_items`).
-  - Regras de Negócio: Filtros específicos (ex: remover pedidos cancelados).
-  - Agregações de Base: Cálculos que servem de alicerce (ex: `total_item_price`).
+- **Transformações**:
+  - **Joins Complexos**: União de entidades (ex: `orders` + `order_items`).
+  - **Regras de Negócio**: Filtros específicos (ex: remover pedidos cancelados).
+  - **Agregações de Base**: Cálculos que servem de alicerce (ex: `total_item_price`).
 
-- Características:
-  - Modelos Efêmeros: Frequentemente não são expostos ao BI (podem ser `ephemeral`).
-  - Modularidade: Evita a repetição de código (DRY - Don't Repeat Yourself).
+- **Características**:
+  - **Modelos Efêmeros**: Frequentemente não são expostos ao BI (podem ser `ephemeral`).
+  - **Modularidade**: Evita a repetição de código (DRY - Don't Repeat Yourself).
 
-- Modelos:
+- **Modelos**:
   - `int_clientes_localizacao`
   - `int_pagamentos_pivoteados`
   - `int_pagamentos_resumo`
@@ -153,70 +153,97 @@ As transformações foram realizadas utilizando dbt.
 ---
 
 ## Camada Marts 🟡
-**bjetivo:** Entrega de valor. Dados prontos para consumo por ferramentas de BI.
+**Objetivo:** Entrega de valor. Dados prontos para consumo por ferramentas de BI.
 
-- Estrutura (Star Schema):
-  - Dimensões (`dim_`): Entidades do negócio (Quem? O quê? Onde?). Contêm dados descritivos.
-  - Fatos (`fct_`): Eventos quantificáveis (Quanto? Quando?). Contêm métricas e chaves estrangeiras.
+- **Estrutura (Star Schema)**:
+  - **Dimensões (`dim_`)**: Entidades do negócio (Quem? O quê? Onde?). Contêm dados descritivos.
+  - **Fatos (`fct_`)**: Eventos quantificáveis (Quanto? Quando?). Contêm métricas e chaves estrangeiras.
 
-- Características:
-  - Linguagem de Negócio: Nomes de colunas totalmente intuitivos para analistas.
-  - Performance: Geralmente materializados como `table` ou `incremental` para rapidez na leitura.
-  - Granularidade: Nível de granularidade explícita.
+- **Características**:
+  - **Linguagem de Negócio**: Nomes de colunas totalmente intuitivos para analistas.
+  - **Performance**: Geralmente materializados como `table` ou `incremental` para rapidez na leitura.
+  - **Granularidade**: Nível de granularidade explícita.
   
-- Star Schema (Esquema Estrela):
-  - Tabelas Fato (fct_): Registram os eventos quantitativos `fct_orders`, `fct_payments`, `fct_reviews`.
-  - Tabelas Dimensão (dim_): Contêm os contextos `dim_customers`, `dim_products`, `dim_sellers`.
+- **Star Schema (Esquema Estrela)**:
+  - **Tabelas Fato (fct_)**: Registram os eventos quantitativos `fct_vendas`.
+  - **Tabelas Dimensão (dim_)**: Contêm os contextos `dim_clientes`, `dim_produtos`.
 
 ### Principais KPIs Gerados
-1. GMV: Faturamento bruto total.
-2. Delivery Lead Time: Tempo médio entre compra e entrega.
-3. NPS Simulado: Score de satisfação convertido em métricas binárias.
-4. Mix de Pagamento: Distribuição entre Cartão, Boleto e Voucher.
+1. **GMV**: Faturamento bruto total.
+2. **Delivery Lead Time**: Tempo médio entre compra e entrega.
+3. **NPS Simulado**: Score de satisfação convertido em métricas binárias.
+4. **Mix de Pagamento**: Distribuição entre Cartão, Boleto e Voucher.
 
 ---
 
 ## 🛡️ Cultura de Qualidade de Dados
-Diferente de scripts SQL comuns, este projeto utiliza testes automatizados em cada etapa do dbt:
-1. Unique: Garante que IDs não se repitam.
-2. Not Null: Impede que métricas essenciais (como preço) fiquem vazias.
-3. Relationships: Valida a integridade referencial (ex: não existe pagamento para um pedido inexistente).
-4. Accepted Values: Garante que status de pedidos e regiões brasileiras estejam dentro do esperado.
+**Diferente de scripts SQL comuns, este projeto utiliza testes automatizados em cada etapa do dbt**:
+1. **Unique**: Garante que IDs não se repitam.
+2. **Not Null**: Impede que métricas essenciais (como preço) fiquem vazias.
+3. **Relationships**: Valida a integridade referencial (ex: não existe pagamento para um pedido inexistente).
+4. **Accepted Values**: Garante que status de pedidos e regiões brasileiras estejam dentro do esperado.
 
 --- 
 
 ## 🔧 Parte Técnica
-1. Sources: Mapeaste os dados brutos.
-2. Staging (Silver): Limpaste tipos de dados e padronizaste strings.
-3. Marts (Gold): Criaste a lógica de negócio (Traduções, KPIs de tempo de entrega, Consolidação financeira).
-4. Tests: Implementaste testes de unicidade, nulidade e integridade referencial.
-5. Docs: Criaste uma homepage e documentaste cada coluna.
+1. **Sources**: Mapeaste os dados brutos.
+2. **Staging (Silver)**: Limpaste tipos de dados e padronizaste strings.
+3. **Marts (Gold)**: Criaste a lógica de negócio (Traduções, KPIs de tempo de entrega, Consolidação financeira).
+4. **Tests**: Implementaste testes de unicidade, nulidade e integridade referencial.
+5. **Docs**: Criaste uma homepage e documentaste cada coluna.
+
+---
+
+## 📂 Estrutura de Domínios (Marts)
+| Pasta            | O que representa?                                                                    | Exemplos de Modelos que você criou           |
+|------------------|--------------------------------------------------------------------------------------|----------------------------------------------|
+| `core/`          | Tabelas base (Dimensões e Fatos centrais) que servem para todos os outros domínios.  | `dim_clientes`, `dim_produtos`, `fct_vendas` |
+| `finance/`       | Métricas de dinheiro, pagamentos, faturamento e perdas.                              | `mart_analise_pagamentos_status`, `mart_parcelamento_categoria` |
+| `logistics/`     | Tudo sobre o fluxo do produto: prazos, fretes e entregas.                            | `mart_performance_entrega`, `mart_relacao_frete_review` |
+| `marketing/`     | Comportamento do cliente, retenção, CAC e segmentação.	                              | `mart_recorrencia_clientes`, `mart_faturamento_estados` |
+| `product/`       | Performance de catálogo, estoque e popularidade.                                     | `mart_curva_abc_produtos` |
+
+**Por que dividir assim?**
+1. **Organização Mental**: Fica claro onde criar um novo modelo. Se for sobre "satisfação do cliente", vai para marketing ou core (se for uma métrica muito básica).
+2. **Permissões (Governança)**: No futuro, se você usar um Data Warehouse grande (como BigQuery ou Snowflake), você pode dar permissão para o time de Finanças ver apenas a pasta finance, protegendo dados sensíveis.
+3. **Documentação Limpa**: No dbt docs, os modelos aparecerão agrupados por essas pastas, o que torna a navegação intuitiva para quem não é técnico.
 
 ---
 
 ## 📂 Estrutura do Projeto
 ```text
 brazilian-ecommerce-pipeline-dbt/
-├── airflow/                   # Configurações do Orquestrador
-│   ├── dags/                  # Suas DAGs que chamam o dbt e o Python
-├── dbt_transform/             # Projeto de Transformação SQL utilizando dbt
-│   ├── models/
-│   │   ├── intermediate/      # Transformação e lógica de negócio
-│   │   ├── staging/           # Limpeza e padronização
-│   │   └── marts/             # Modelagem dimensional 
-│   └── dbt_project.yml
-├── src/                       # CÓDIGO FONTE CUSTOMIZADO
+├── airflow/                    # Configurações do Orquestrador
+│   ├── dags/                   # Suas DAGs (ex: dag_olist_pipeline.py)
+│   ├── plugins/                # Operadores customizados se houver
+│   └── logs/                   # Logs do Airflow
+├── dbt_transform/              # Projeto dbt (Transformação SQL)
+│   ├── models/                 # PASTA OBRIGATÓRIA PARA MODELOS
+│   │   ├── staging/            # Limpeza inicial (Cast, Rename)
+│   │   ├── intermediate/       # Joins e Agregações Complexas
+│   │   └── marts/              # Camada Final de Negócio
+│   │       ├── core/           # Fatos e Dimensões (fct_vendas, dim_produtos)
+│   │       ├── finance/        # analise_pagamentos_status.sql
+│   │       ├── marketing/      # categoria_produto_vendido.sql, recorrencia_clientes.sql
+│   │       ├── logistics/      # estados_faturamento.sql, performance_entrega.sql
+│   │       └── product/        # curva_abc_produtos.sql
+│   ├── tests/                  # Testes customizados (.sql)
+│   ├── macros/                 # Macros Jinja reutilizáveis
+│   ├── target/                 # Arquivos compilados (ignorar no git)
+│   ├── dbt_project.yml         # Configuração mestre do dbt
+│   └── packages.yml            # Pacotes externos (ex: dbt_utils)
+├── src/                        # CÓDIGO FONTE CUSTOMIZADO (Python)
 │   ├── ingestion/             
-│   │   └── data_generator.py  # Script do Kaggle
+│   │   └── data_generator.py   # Script do Kaggle / Extração
 │   └── utils/                 
-│       └── db_helpers.py      # Funções de conexão, logs, etc.
-├── data/                      # Landing Zone (Ignorada no .gitignore)
-│   ├── landing/               # Datasets baixandos do Kaggle
-│   └── raw/                   # Parquets
-├── .env                       # Configuração de Ambientes
-├── .gitignore
+│       └── db_helpers.py       # Conexões e Logs
+├── data/                       # Landing Zone (Ignorada no .gitignore)
+│   ├── landing/                # CSVs brutos do Kaggle
+│   └── raw/                    # Arquivos convertidos (Parquet)
+├── .env                        # Variáveis de ambiente (DB_USER, DB_PASS)
+├── .gitignore                  # IMPORTANTE: ignorar /data, /target e .env
 ├── README.md
-└── requirements.txt
+└── requirements.txt            # dbt-postgres, pandas, apache-airflow, etc.
 ```
 
 ## 🚀 Instalação e Configuração
@@ -301,6 +328,9 @@ cd /brazilian-ecommerce-dbt/transform
 ### 2️⃣ Rodar o Pipeline de Transformação
 O comando build executa os modelos, roda os testes e aplica os snapshots em uma única operação.
 ```bash
+# Execute para instalar as dependências
+dbt deps
+
 # Rodar o build, definido no profiles.yml
 dbt build
 

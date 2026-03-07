@@ -1,94 +1,233 @@
 version: 2
 
 models:
-  - name: fct_orders
-    description: "Tabela central de vendas que consolida valores de itens e status de entrega."
+  # --- DIMENSÃO CLIENTES ---
+  - name: dim_clientes
+    description: "Tabela de dimensao contendo dados de localizacao dos clientes."
     columns:
-      - name: order_id
+      - name: cliente_id
+        description: "ID unico da transacao do cliente (chave primaria)."
         tests:
           - unique
           - not_null
-      - name: total_order_amount
-        description: "Soma do preço dos itens mais o valor do frete."
-      - name: delivery_lead_time_days
-        description: "Calcula o tempo de entrega em dias (Dia da entrega - Dia Comprado)"
-  
-  - name: fct_payments
-    description: "Tabela de factos que detalha cada transação de pagamento por pedido."
+      - name: cliente_unico_id
+        description: "ID unico que identifica o cliente em todas as suas compras."
+        tests:
+          - not_null
+      - name: cliente_cidade
+        description: "Cidade de residencia do cliente."
+      - name: cliente_estado
+        description: "Estado (UF) de residencia do cliente."
+
+  # --- DIMENSÃO PRODUTOS ---
+  - name: dim_produtos
+    description: "Tabela de dimensao com caracteristicas físicas e categorias dos produtos."
     columns:
-      - name: order_id
-        description: "Chave estrangeira para a tabela de pedidos."
+      - name: produto_id
+        description: "Chave primaria do produto."
+        tests:
+          - unique
+          - not_null
+      - name: categoria_nome
+        description: "Nome da categoria do produto traduzida."
+      - name: produto_peso_gramas
+        description: "Peso líquido do produto em gramas (g)."
+        data_type: numeric(10, 2)
+      - name: produto_comprimento_cm
+        description: "Comprimento do produto em centímetros (cm)."
+        data_type: numeric(10, 2)
+      - name: produto_altura_cm
+        description: "Altura do produto em centrimetros (cm)."
+        data_type: numeric(10, 2)
+      - name: produto_largura_cm
+        description: "Largura do produto em centrimetros (cm)."
+        data_type: numeric(10, 2)
+      - name: categoria_volumetria
+        description: "Flag que define se o produto e de Grande Porte ou Pequeno/Medio com base no volume (cm3)."
+        tests:
+          - accepted_values:
+              values: ['Grande Porte', 'Pequeno/Médio Porte']
+
+# --- FATO VENDAS ---
+  - name: fct_vendas
+    description: "Tabela fato principal que consolida vendas, pagamentos e reviews por item de pedido. O grão desta tabela é o item do pedido."
+    columns:
+      - name: pedido_id
+        description: "ID único do pedido (order_id)."
+        tests:
+          - not_null
+      - name: produto_id
+        description: "Chave estrangeira para a dim_produtos."
         tests:
           - not_null
           - relationships:
-              to: ref('stg_orders')
-              field: order_id
-      - name: payment_method
-        description: "Método de pagamento traduzido (Cartão, Boleto, etc)."
+              to: ref('dim_produtos')
+              field: produto_id
+      - name: cliente_id
+        description: "Chave estrangeira para a dim_clientes (vinculado à transação)."
         tests:
           - not_null
-      - name: amount
-        description: "Valor pago nesta transação específica."
+      - name: vendedor_id
+        description: "ID único do vendedor responsável pelo item."
+      - name: pedido_criado_em
+        description: "Data e hora em que o pedido foi realizado pelo cliente."
         tests:
           - not_null
-  
-  - name: fct_reviews
-    description: "Tabela de fatos com as avaliações dos clientes sobre seus pedidos."
-    columns:
-      - name: review_id
-        description: "ID único da avaliação."
-        tests:
-          - unique
-          - not_null
-      - name: order_id
-        description: "FK para a tabela de pedidos."
-        tests:
-          - relationships:
-              to: ref('stg_orders')
-              field: order_id
-      - name: review_score
-        description: "Nota de 1 a 5 dada pelo cliente."
-      - name: is_satisfied
-        description: "Flag binária: 1 para notas >= 4, 0 para notas menores."
+      - name: status_pedido
+        description: "Status atual do ciclo de vida do pedido (ex: delivered, canceled)."
         tests:
           - accepted_values:
-              values: [0, 1]
-  
-  - name: dim_sellers
-    description: "Dimensão contendo informações geográficas dos vendedores parceiros."
-    columns:
-      - name: seller_id
+              values: ['delivered', 'shipped', 'canceled', 'invoiced', 'processing', 'unavailable', 'approved']
+      - name: preco
+        description: "Preço unitário do item vendido (não inclui o frete)."
+      - name: valor_frete
+        description: "Valor do frete atribuído a este item do pedido."
+      - name: valor_total_item
+        description: "Valor total da linha (Preço + Frete)."
+      - name: metodo_pagamento_predominante
+        description: "O método de pagamento que processou o maior valor para este pedido (ex: Cartão de Crédito)."
+      - name: valor_total_pago
+        description: "Soma de todos os pagamentos realizados para este pedido (incluindo vouchers e múltiplos cartões)."
+      - name: qtd_metodos_pagamento
+        description: "Quantidade de transações/métodos diferentes usados para pagar o pedido."
+      - name: max_parcelas
+        description: "O maior número de parcelas escolhido pelo cliente entre os métodos de pagamento do pedido."
+      - name: media_score_review
+        description: "Nota média de satisfação (1 a 5) atribuída pelo cliente em suas avaliações."
         tests:
-          - unique
-          - not_null
-      - name: seller_city
-        description: "Cidade de origem do vendedor."
-      - name: seller_state
-        description: "UF do vendedor."
-  
-  - name: dim_customers
-    description: "Dimensão de clientes com enriquecimento de região brasileira."
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 1
+                max_value: 5
+
+# --- FINANCEIRO: PAGAMENTOS E STATUS ---
+  - name: mart_analise_pagamentos_status
+    description: "Analise de faturamento bruto vs cancelado por metodo de pagamento e status do pedido."
     columns:
-      - name: customer_id
+      - name: status_pedido
+        description: "Status do ciclo de vida do pedido."
+      - name: metodo_pagamento_predominante
+        description: "Metodo de pagamento que processou o maior valor no pedido."
+      - name: qtd_pedidos
+        description: "Contagem de pedidos unicos para este agrupamento."
+      - name: valor_bruto
+        description: "Soma do valor total dos itens (Preco + Frete)."
+      - name: valor_cancelado
+        description: "Valor total perdido em pedidos com status 'canceled'."
+
+  # --- LOGÍSTICA: FATURAMENTO POR ESTADO ---
+  - name: mart_faturamento_estados
+    description: "Visao geografica de vendas para identificar os estados que mais geram receita."
+    columns:
+      - name: cliente_estado
+        description: "UF de residencia do cliente."
         tests:
-          - unique
           - not_null
-      - name: customer_region
-        description: "Região do Brasil baseada no estado (Sudeste, Sul, etc)."
+      - name: faturamento_total
+        description: "Soma do valor total dos itens por estado."
+      - name: qtd_pedidos
+        description: "Volume de pedidos por estado."
+
+  # --- LOGÍSTICA: PERFORMANCE DE ENTREGA ---
+  - name: mart_performance_entrega
+    description: "Monitoramento de prazos de entrega e calculo de atrasos logisticos."
+    columns:
+      - name: pedido_id
+        description: "Chave unica do pedido."
+        tests:
+          - not_null
+      - name: vendedor_id
+        description: "ID do vendedor responsavel pelo envio."
+      - name: status_pedido
+        description: "Status atual do ciclo de vida do pedido (ex: delivered, canceled)."
         tests:
           - accepted_values:
-              values: ['Sudeste', 'Sul', 'Centro-Oeste', 'Nordeste', 'Norte']
-  
-  - name: dim_products
-    description: "Dimensão de produtos com categorias traduzidas para Inglês e métricas de volume."
+              values: ['delivered', 'shipped', 'canceled', 'invoiced', 'processing', 'unavailable', 'approved']
+      - name: status_entrega
+        description: "Classificacao da entrega: No Prazo, Atrasado, Em Transito ou No Prazo."
+        tests:
+          - accepted_values:
+              values: ['Em Trânsito / Pendente', 'No Prazo', 'Atrasado']
+      - name: pedido_aprovado_em
+        description: "Data que o pedido foi aprovado."
+      - name: data_postagem
+        description: "Data que o pedido foi enviado."
+      - name: dias_atraso
+        description: "Diferenca em dias entre a entrega real e a estimada. Numeros positivos indicam atraso."
+      - name: data_entrega_real
+        description: "Data em que o cliente final recebeu o produto."
+      - name: data_entrega_prometida
+        description: "Data limite informada ao cliente no momento da compra."
+
+  # --- LOGÍSTICA: FRETE VS REVIEW ---
+  - name: mart_relacao_frete_review
+    description: "Analise de correlacão para entender se o custo do frete influencia na nota dada pelo cliente."
     columns:
-      - name: product_id
+      - name: media_score_review
+        description: "Nota de satisfacao (1 a 5)."
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 1
+                max_value: 5
+      - name: frete_medio
+        description: "Media do valor de frete para cada faixa de pontuacao."
+      - name: qtd_pedidos
+        description: "Volume de avaliacoes por faixa de score."
+
+# --- MARKETING: PARCELAMENTO POR CATEGORIA ---
+  - name: mart_parcelamento_categoria
+    description: "Analise de comportamento de pagamento: identifica quais categorias de produtos são mais parceladas pelos clientes."
+    columns:
+      - name: categoria_nome
+        description: "Nome da categoria do produto."
+        tests:
+          - unique
+      - name: media_parcelas
+        description: "Media do numero de parcelas escolhidas para pedidos desta categoria."
+      - name: qtd_pedidos
+        description: "Quantidade total de pedidos unicos na categoria."
+      - name: faturamento_total
+        description: "Soma do valor total (Preco + Frete) gerado pela categoria."
+
+  # --- MARKETING: RECORRENCIA DE CLIENTES ---
+  - name: mart_recorrencia_clientes
+    description: "Analise de fidelidade e tempo de vida (LTV) baseada no comportamento de compra do cliente unico."
+    columns:
+      - name: cliente_unico_id
+        description: "Chave unica do cliente (identificador persistente)."
         tests:
           - unique
           - not_null
-      - name: category_en
-        description: "Nome da categoria traduzido via tabela de tradução."
-      - name: category_pt
-        description: "Nome da categoria traduzido para pt-br."
-      - name: volume_cm3
-        description: "Volume cúbico calculado (Comprimento * Altura * Largura)."
+      - name: total_pedidos
+        description: "Total de pedidos realizados pelo cliente na base historica."
+      - name: primeira_compra
+        description: "Data do primeiro pedido realizado."
+      - name: ultima_compra
+        description: "Data do pedido mais recente."
+      - name: lifetime_value
+        description: "Valor total investido pelo cliente na plataforma (LTV)."
+      - name: perfil_cliente
+        description: "Classificacao entre Cliente Unico (1 compra) ou Recorrente (>1 compra)."
+        tests:
+          - accepted_values:
+              values: ['Cliente Recorrente', 'Cliente Único']
+      - name: dias_entre_compras
+        description: "Diferenca em dias entre a primeira e a ultima compra (tempo de retencao)."
+
+  # --- PRODUTOS: CURVA ABC ---
+  - name: mart_curva_abc_produtos
+    description: "Classificacao de produtos baseada na Receita Total (Regra 80/15/5)."
+    columns:
+      - name: produto_id
+        description: "ID unico do produto."
+        tests:
+          - unique
+          - not_null
+      - name: receita_total
+        description: "Soma do faturamento gerado exclusivamente por este produto."
+      - name: classe_abc
+        description: "Classificacao: A (ate 80% da receita), B (proximos 15%), C (5% restantes)."
+        tests:
+          - accepted_values:
+              values: ['A', 'B', 'C']
