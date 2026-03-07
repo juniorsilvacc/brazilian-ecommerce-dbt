@@ -328,17 +328,17 @@ cd /brazilian-ecommerce-dbt/transform
 ### 2️⃣ Rodar o Pipeline de Transformação
 O comando build executa os modelos, roda os testes e aplica os snapshots em uma única operação.
 ```bash
-# Execute para instalar as dependências
+# Execute para a instalação das dependências
 dbt deps
 
-# Rodar o build, definido no profiles.yml
+# Execução do build. Combina em uma única etapa a compilação executando (modelos, testes, snapshots e seeds)
 dbt build
 
-# Rodar apenas a execução
+# Executa apenas o modelos
 dbt run
 
-# Rodar apenas a camada específica
-dbt run --select staging
+# Executa o domínio/modelo específico
+dbt run --select marts
 ```
 
 ### 3️⃣ Gerar e Visualizar Documentação

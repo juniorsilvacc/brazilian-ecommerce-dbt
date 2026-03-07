@@ -114,21 +114,23 @@ models:
         description: "Soma do valor total dos itens (Preco + Frete)."
       - name: valor_cancelado
         description: "Valor total perdido em pedidos com status 'canceled'."
-
-  # --- LOGÍSTICA: FATURAMENTO POR ESTADO ---
-  - name: mart_faturamento_estados
-    description: "Visao geografica de vendas para identificar os estados que mais geram receita."
+  
+# --- FINANCEIRO: PARCELAMENTO POR CATEGORIA ---
+  - name: mart_parcelamento_categoria
+    description: "Analise de comportamento de pagamento: identifica quais categorias de produtos são mais parceladas pelos clientes."
     columns:
-      - name: cliente_estado
-        description: "UF de residencia do cliente."
+      - name: categoria_nome
+        description: "Nome da categoria do produto."
         tests:
-          - not_null
-      - name: faturamento_total
-        description: "Soma do valor total dos itens por estado."
+          - unique
+      - name: media_parcelas
+        description: "Media do numero de parcelas escolhidas para pedidos desta categoria."
       - name: qtd_pedidos
-        description: "Volume de pedidos por estado."
-
-  # --- LOGÍSTICA: PERFORMANCE DE ENTREGA ---
+        description: "Quantidade total de pedidos unicos na categoria."
+      - name: faturamento_total
+        description: "Soma do valor total (Preco + Frete) gerado pela categoria."
+  
+# --- LOGÍSTICA: PERFORMANCE DE ENTREGA ---
   - name: mart_performance_entrega
     description: "Monitoramento de prazos de entrega e calculo de atrasos logisticos."
     columns:
@@ -159,7 +161,7 @@ models:
       - name: data_entrega_prometida
         description: "Data limite informada ao cliente no momento da compra."
 
-  # --- LOGÍSTICA: FRETE VS REVIEW ---
+# --- LOGÍSTICA: FRETE VS REVIEW ---
   - name: mart_relacao_frete_review
     description: "Analise de correlacão para entender se o custo do frete influencia na nota dada pelo cliente."
     columns:
@@ -175,22 +177,20 @@ models:
       - name: qtd_pedidos
         description: "Volume de avaliacoes por faixa de score."
 
-# --- MARKETING: PARCELAMENTO POR CATEGORIA ---
-  - name: mart_parcelamento_categoria
-    description: "Analise de comportamento de pagamento: identifica quais categorias de produtos são mais parceladas pelos clientes."
+# --- MARKETING: FATURAMENTO POR ESTADO ---
+  - name: mart_faturamento_estados
+    description: "Visao geografica de vendas para identificar os estados que mais geram receita."
     columns:
-      - name: categoria_nome
-        description: "Nome da categoria do produto."
+      - name: cliente_estado
+        description: "UF de residencia do cliente."
         tests:
-          - unique
-      - name: media_parcelas
-        description: "Media do numero de parcelas escolhidas para pedidos desta categoria."
-      - name: qtd_pedidos
-        description: "Quantidade total de pedidos unicos na categoria."
+          - not_null
       - name: faturamento_total
-        description: "Soma do valor total (Preco + Frete) gerado pela categoria."
+        description: "Soma do valor total dos itens por estado."
+      - name: qtd_pedidos
+        description: "Volume de pedidos por estado."
 
-  # --- MARKETING: RECORRENCIA DE CLIENTES ---
+# --- MARKETING: RECORRENCIA DE CLIENTES ---
   - name: mart_recorrencia_clientes
     description: "Analise de fidelidade e tempo de vida (LTV) baseada no comportamento de compra do cliente unico."
     columns:
@@ -215,7 +215,7 @@ models:
       - name: dias_entre_compras
         description: "Diferenca em dias entre a primeira e a ultima compra (tempo de retencao)."
 
-  # --- PRODUTOS: CURVA ABC ---
+# --- PRODUTOS: CURVA ABC ---
   - name: mart_curva_abc_produtos
     description: "Classificacao de produtos baseada na Receita Total (Regra 80/15/5)."
     columns:
