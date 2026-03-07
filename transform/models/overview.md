@@ -1,6 +1,6 @@
 {% docs __overview__ %}
 
-# 📊 Projeto Brazilian E-commerce - Data Engineer
+# 📊 Projeto Brazilian E-commerce - Analytics Engineering
 
 Bem-vindo à documentação do pipeline de dados da **Olist**. Este projeto utiliza a metodologia **Medallion Architecture** para transformar dados brutos de e-commerce em insights estratégicos para as áreas de negócio.
 
@@ -37,8 +37,11 @@ Os modelos foram desenhados para responder perguntas críticas:
 ---
 
 **Mantenedor:** Junior Silva - Data Engineer
+
 **Linkedin:** [Linkedin](https://www.linkedin.com/in/juniiorsilvadev/)
-**Linkedin:** [Github](https://github.com/juniorsilvacc)
+
+**Github:** [Github](https://github.com/juniorsilvacc)
+
 **Última Atualização:** 2026-03-07
 
 {% enddocs %}
