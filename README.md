@@ -254,7 +254,7 @@ git clone https://github.com/juniorsilvacc/brazilian-ecommerce-dbt.git
 ```
 
 ### 2️⃣ Obtenha sua API Kaggle
-1. Acesse APIs Nasa: [Kaggle](https://www.kaggle.com/) 
+1. Acesse APIs Kaggle: [Kaggle](https://www.kaggle.com/) 
 2. Crie uma conta gratuita
 3. Gere sua API Key 
 
